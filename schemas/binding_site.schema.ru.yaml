@@ -1,0 +1,297 @@
+schema_name: binding_site
+schema_version: 1.0
+language: ru
+
+description: >
+  Эти описания сущностей создаются для того, чтобы агентные системы ("ИИ") и человек
+  имели общее понимание чувствительных объектов при моделировании физического мира.
+  Эта схема определяет одну интерпретацию сайта связывания рецептора как нормализованную
+  сущность, связанную со структурой рецептора и, при необходимости, с одной или несколькими
+  интерпретациями комплекса с лигандом.
+
+entity_definition:
+  name: binding_site
+  description: >
+    Структурированное представление одной интерпретации сайта связывания в одном контексте
+    структуры рецептора/белка. Запись может описывать активный центр, ортостерический сайт,
+    аллостерический сайт, периферический сайт, интерфейсный сайт или другой консервативно
+    выделенный участок. Один и тот же биологический сайт, наблюдаемый в разных структурах,
+    обычно должен представляться отдельными binding_site-записями, привязанными к каждому
+    поддерживающему структурному контексту.
+
+record_granularity:
+  unit: one_binding_site_record
+  description: >
+    Одна запись соответствует одной интерпретации сайта в одном контексте структуры рецептора,
+    обычно одному chain-specific сайту внутри одной депонированной или связанной с реестром
+    структуры/модели. Состав остатков сайта может различаться между структурами, конструкциями
+    и конформационными состояниями, поэтому binding_site-записи должны оставаться structure-specific.
+
+naming_conventions:
+  missing_value: null
+  boolean_values: [true, false]
+  list_format: array
+  primary_id_example: "binding_site:4EY4:A:active_site"
+
+field_groups:
+  - identity
+  - receptor_link
+  - site_definition
+  - residues
+  - evidence
+  - relations
+  - references
+  - curation
+
+fields:
+  - name: site_id
+    type: string
+    required: true
+    description: Стабильный внутренний идентификатор сущности binding_site.
+    example: "binding_site:4EY4:A:active_site"
+
+  - name: structure_registry
+    type: string
+    required: true
+    description: Основной реестр или система-источник, из которой получена поддерживающая структура/модель.
+    allowed_values:
+      - PDB
+      - UniProt
+      - AlphaFold
+      - ModelArchive
+      - EMDB
+      - Other
+    example: "PDB"
+
+  - name: structure_id
+    type: string
+    required: true
+    description: Основной идентификатор поддерживающей структуры/модели в реестре-источнике.
+    example: "4EY4"
+
+  - name: receptor_entity_id
+    type: string
+    required: true
+    description: Идентификатор связанной сущности receptor_structure.
+    example: "receptor_structure:4EY4"
+
+  - name: gene_name
+    type: string
+    required: false
+    description: Стандартный символ гена рецептора/белка, если доступен.
+    example: "ACHE"
+
+  - name: organism
+    type: string
+    required: false
+    description: Вид-источник рецептора/белка.
+    example: "Homo sapiens"
+
+  - name: auth_asym_id
+    type: string
+    required: false
+    description: Авторский идентификатор цепи для chain-specific контекста сайта, если применимо.
+    example: "A"
+
+  - name: site_label
+    type: string
+    required: false
+    description: Краткая человекочитаемая метка для интерпретации сайта.
+    example: "ортостерический карман активного центра"
+
+  - name: site_type
+    type: string
+    required: true
+    description: Основной структурный или функциональный класс сайта.
+    allowed_values:
+      - active_site
+      - orthosteric_site
+      - allosteric_site
+      - peripheral_site
+      - interface_site
+      - unknown
+
+  - name: site_function
+    type: string
+    required: false
+    description: Функциональная интерпретация сайта в текущей записи.
+    allowed_values:
+      - catalytic
+      - ligand_binding
+      - mixed
+      - unknown
+
+  - name: supporting_ligand_codes
+    type: array[string]
+    required: false
+    description: Коды лигандов, поддерживающие текущую интерпретацию сайта.
+
+  - name: residue_members
+    type: array[object]
+    required: false
+    description: Консервативный набор остатков, считающихся частью сайта в данном структурном контексте.
+    item_schema:
+      auth_comp_id: string
+      auth_seq_id: integer
+      auth_asym_id: string
+    example:
+      - auth_comp_id: "SER"
+        auth_seq_id: 203
+        auth_asym_id: "A"
+      - auth_comp_id: "HIS"
+        auth_seq_id: 447
+        auth_asym_id: "A"
+
+  - name: active_residue_members
+    type: array[object]
+    required: false
+    description: Более строгий поднабор residue_members, содержащий остатки, которые можно обосновать как функционально центральные или каталитические.
+    item_schema:
+      auth_comp_id: string
+      auth_seq_id: integer
+      auth_asym_id: string
+    example:
+      - auth_comp_id: "SER"
+        auth_seq_id: 203
+        auth_asym_id: "A"
+
+  - name: evidence_items
+    type: array[object]
+    required: false
+    description: Свидетельства, поддерживающие текущую интерпретацию сайта и состав остатков.
+    item_schema:
+      evidence_type: string
+      source_level: string
+      description: string
+    example:
+      - evidence_type: "deposited_binding_site_annotation"
+        source_level: "structure_file"
+        description: "Остатки перечислены в депонированной аннотации struct_site."
+      - evidence_type: "ligand_interaction_feature"
+        source_level: "rcsb_polymer_entity_instance"
+        description: "Остатки восстановлены по признакам ligand interaction на уровне цепи."
+
+  - name: confidence_level
+    type: string
+    required: false
+    description: Уровень уверенности в текущей интерпретации сайта и назначении остатков.
+    allowed_values:
+      - high
+      - medium
+      - low
+      - unknown
+
+  - name: related_entities
+    type: array[object]
+    required: false
+    description: Связи от этого сайта к другим сущностям в онтологии или модели данных.
+    item_schema:
+      entity_type: string
+      entity_id: string
+      relation_type: string
+      note: string
+    example:
+      - entity_type: "receptor_structure"
+        entity_id: "receptor_structure:4EY4"
+        relation_type: "derived_from_structure"
+        note: "Родительская структура рецептора, поддерживающая эту интерпретацию сайта."
+      - entity_type: "ligand_complex"
+        entity_id: "ligand_complex:4EY4_donepezil"
+        relation_type: "maps_to_binding_site"
+        note: "Комплекс с donepezil отнесен к тому же сайту."
+
+  - name: primary_reference
+    type: string
+    required: false
+    description: DOI, PubMed ID или краткая ссылка на работу, поддерживающую интерпретацию сайта.
+
+  - name: source_url
+    type: string
+    required: false
+    description: Канонический URL страницы реестра для поддерживающей структуры/модели.
+
+  - name: notes
+    type: string
+    required: false
+    description: Свободный комментарий куратора для важных оговорок, неоднозначностей по остаткам или ограничений доказательств.
+
+interpretation_rules:
+  - rule: structure_specificity
+    text: >
+      Не объединяй site-records из нескольких структур по умолчанию. Состав остатков сайта может различаться
+      между структурами, конструкциями, ligand states и конформационными состояниями, поэтому каждая запись
+      должна оставаться привязанной к своему структурному контексту.
+
+  - rule: active_residue_conservatism
+    text: >
+      Не повышай все ligand-contacting residues до active_residue_members. active_residue_members - это более
+      строгий поднабор и он должен включать только остатки, которые явно поддерживаются как функционально
+      центральные, каталитические или иным образом механистически привилегированные доверенными источниками
+      или консервативным курированием.
+
+  - rule: evidence_priority
+    text: >
+      Предпочитай депонированные site annotations, явные курированные ссылки или прямые residue-level данные
+      непрямым ligand-contact proxy. Если доступны только ligand-contact или software-generated binding-site
+      признаки, предпочитай site_function = ligand_binding или unknown вместо догадок о catalytic роли.
+
+  - rule: chain_specificity
+    text: >
+      Сохраняй auth_asym_id, если сайт является chain-specific. Если источник не поддерживает chain-specific
+      назначение, оставляй auth_asym_id равным null, а не выдумывай контекст цепи.
+
+  - rule: null_handling
+    text: >
+      Если поле нельзя определить по доверенным данным источника, устанавливай null вместо догадки.
+
+output_template:
+  format: json
+  example:
+    site_id: "binding_site:4EY4:A:active_site"
+    structure_registry: "PDB"
+    structure_id: "4EY4"
+    receptor_entity_id: "receptor_structure:4EY4"
+    gene_name: "ACHE"
+    organism: "Homo sapiens"
+    auth_asym_id: "A"
+    site_label: "ортостерический карман активного центра"
+    site_type: "active_site"
+    site_function: "catalytic"
+    supporting_ligand_codes: ["E20"]
+    residue_members:
+      - auth_comp_id: "TRP"
+        auth_seq_id: 86
+        auth_asym_id: "A"
+      - auth_comp_id: "SER"
+        auth_seq_id: 203
+        auth_asym_id: "A"
+      - auth_comp_id: "HIS"
+        auth_seq_id: 447
+        auth_asym_id: "A"
+    active_residue_members:
+      - auth_comp_id: "SER"
+        auth_seq_id: 203
+        auth_asym_id: "A"
+      - auth_comp_id: "HIS"
+        auth_seq_id: 447
+        auth_asym_id: "A"
+    evidence_items:
+      - evidence_type: "deposited_binding_site_annotation"
+        source_level: "structure_file"
+        description: "Остатки перечислены в аннотации сайта и консервативно интерпретированы как часть активного центра."
+      - evidence_type: "literature_curation"
+        source_level: "primary_reference"
+        description: "Основная публикация описывает каталитические остатки для ligand-bound структуры."
+    confidence_level: "high"
+    related_entities:
+      - entity_type: "receptor_structure"
+        entity_id: "receptor_structure:4EY4"
+        relation_type: "derived_from_structure"
+        note: "Родительская структура рецептора."
+      - entity_type: "ligand_complex"
+        entity_id: "ligand_complex:4EY4_donepezil"
+        relation_type: "maps_to_binding_site"
+        note: "Комплекс с donepezil отнесен к этому сайту."
+    primary_reference: "10.1074/jbc.M411101200"
+    source_url: "https://www.rcsb.org/structure/4EY4"
+    notes: "residue_members хранит контактные остатки сайта, а active_residue_members - более строгий каталитический поднабор."

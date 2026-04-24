@@ -1,0 +1,456 @@
+schema_name: receptor_structure
+schema_version: 1.0
+language: en
+
+description: >
+  These entity descriptions are created so that agent systems ("AI") and humans
+  share the same understanding of the most sensitive objects in modeling the
+  physical world and preserve strictness in how those objects are described.
+  Such files are also useful when building a domain ontology. This schema defines
+  one receptor/protein structure record as a normalized entity that can be used
+  across curation, modeling, docking, simulation, and knowledge integration workflows.
+
+entity_definition:
+  name: receptor_structure
+  description: >
+    A structured representation of one experimentally determined or registry-linked
+    receptor/protein structure entry. In the current workflow, one record usually
+    corresponds to one structure entry such as a PDB structure, but the identifier
+    set for the same receptor may be extended in the future with entries from UniProt,
+    AlphaFold, and other trusted registries or model repositories.
+
+record_granularity:
+  unit: one_structure_record
+  description: >
+    One record corresponds to one deposited or registry-linked structure/model entry
+    for a receptor/protein. Distinct ligand complexes, mutant forms, predicted models,
+    or structures from different registries are separate records even if they refer
+    to the same biological target.
+
+naming_conventions:
+  missing_value: null
+  boolean_values: [true, false]
+  list_format: array
+  primary_id_example: "4EY4"
+
+field_groups:
+  - identity
+  - biology
+  - experiment
+  - state
+  - assembly
+  - construct
+  - quality
+  - relations
+  - references
+  - curation
+
+fields:
+  - name: structure_registry
+    type: string
+    required: true
+    description: Primary registry or source system that provides the structure record.
+    allowed_values:
+      - PDB
+      - UniProt
+      - AlphaFold
+      - ModelArchive
+      - EMDB
+      - Other
+    example: "PDB"
+
+  - name: structure_id
+    type: string
+    required: true
+    description: Primary identifier of the structure/model in its source registry.
+    example: "4EY4"
+
+  - name: external_ids
+    type: array[object]
+    required: false
+    description: >
+      Cross-registry identifiers for the same receptor structure or closely linked
+      structure/model representations.
+    item_schema:
+      registry: string
+      id: string
+      relation: string
+    example:
+      - registry: "PDB"
+        id: "4EY4"
+        relation: "primary_entry"
+      - registry: "UniProt"
+        id: "P22303"
+        relation: "sequence_reference"
+      - registry: "AlphaFold"
+        id: "AF-P22303-F1"
+        relation: "predicted_model_reference"
+
+  - name: pdb_id
+    type: string
+    required: false
+    description: PDB accession code if the structure is represented in the Protein Data Bank.
+    constraints:
+      regex: "^[0-9A-Z]{4}$"
+    example: "4EY4"
+
+  - name: protein_name
+    type: string
+    required: true
+    description: Canonical protein name reported for the structured macromolecule.
+    example: "Acetylcholinesterase"
+
+  - name: gene_name
+    type: string
+    required: false
+    description: Standard gene symbol for the protein, if available.
+    example: "ACHE"
+
+  - name: organism
+    type: string
+    required: true
+    description: Source organism from which the protein sequence originates.
+    example: "Homo sapiens"
+
+  - name: taxonomy_id
+    type: integer
+    required: false
+    description: NCBI taxonomy identifier for the source organism.
+    example: 9606
+
+  - name: uniprot_id
+    type: string
+    required: false
+    description: UniProt accession matching the protein construct where available.
+    example: "P22303"
+
+  - name: structure_title
+    type: string
+    required: false
+    description: Official title of the deposited structure or model entry.
+
+  - name: experimental_method
+    type: string
+    required: false
+    description: Experimental structure determination method, if applicable.
+    allowed_values:
+      - X-RAY DIFFRACTION
+      - CRYO-EM
+      - SOLUTION NMR
+      - SOLID-STATE NMR
+      - ELECTRON CRYSTALLOGRAPHY
+      - NEUTRON DIFFRACTION
+      - FIBER DIFFRACTION
+      - COMPUTATIONAL MODEL
+      - OTHER
+
+  - name: resolution_angstrom
+    type: number
+    required: false
+    units: angstrom
+    description: Best reported experimental resolution in angstroms.
+    example: 2.35
+
+  - name: ligand_state
+    type: string
+    required: true
+    description: >
+      Describes whether the receptor/protein structure is ligand-free or contains
+      bound functionally relevant ligands.
+    allowed_values:
+      - apo
+      - holo
+      - covalent_inhibitor_complex
+      - noncovalent_complex
+      - substrate_analog_complex
+      - reactivator_complex
+      - mixed_complex
+      - unknown
+
+  - name: bound_ligands
+    type: array[string]
+    required: false
+    description: List of biologically or experimentally relevant bound ligand component codes retained after conservative filtering of non-functional additives. This list should remain useful as a conservative candidate set for downstream binding-site coordinate inference from co-crystallized ligand positions.
+
+  - name: primary_ligand_code
+    type: string
+    required: false
+    description: >
+      Primary functionally central ligand component code for this receptor_structure interpretation,
+      if one can be conservatively determined. Use null when multiple meaningful ligands are present
+      or when prioritization is uncertain.
+
+  - name: inhibitor_class
+    type: string
+    required: false
+    description: Functional inhibitor category when applicable.
+    allowed_values:
+      - organophosphate
+      - carbamate
+      - reversible_inhibitor
+      - substrate_analog
+      - reactivator
+      - allosteric_ligand
+      - none
+      - unknown
+
+  - name: active_site_status
+    type: string
+    required: false
+    description: Functional state of the active site.
+    allowed_values:
+      - free
+      - occupied
+      - covalently_modified
+      - blocked
+      - unknown
+
+  - name: aged_state
+    type: boolean
+    required: false
+    description: >
+      Indicates whether an organophosphate-inhibited cholinesterase structure is in the aged state.
+
+  - name: oligomeric_state
+    type: string
+    required: true
+    description: Quaternary organization assigned to the biologically relevant assembly.
+    allowed_values:
+      - monomer
+      - dimer
+      - trimer
+      - tetramer
+      - oligomer
+      - unknown
+
+  - name: assembly_type
+    type: string
+    required: false
+    description: Whether the annotation refers to asymmetric unit or biological assembly.
+    allowed_values:
+      - asymmetric_unit
+      - biological_assembly
+      - deposited_assembly
+      - predicted_monomer
+      - predicted_multimer
+      - unknown
+
+  - name: stoichiometry
+    type: string
+    required: false
+    description: Stoichiometric label for the relevant assembly.
+    example: "A2"
+
+  - name: chains
+    type: array[string]
+    required: false
+    description: Chain identifiers included in the relevant receptor/protein assembly.
+
+  - name: construct_type
+    type: string
+    required: false
+    description: Nature of the protein construct used for structure determination or modeling.
+    allowed_values:
+      - full_length
+      - catalytic_domain
+      - extracellular_domain
+      - engineered_construct
+      - truncated_construct
+      - fusion_construct
+      - predicted_model
+      - unknown
+
+  - name: sequence_range
+    type: string
+    required: false
+    description: Residue span present in the construct or modeled region.
+    example: "32-550"
+
+  - name: mutations
+    type: array[string]
+    required: false
+    description: List of engineered or biologically relevant mutations.
+    example: ["S203A"]
+
+  - name: glycosylation
+    type: boolean
+    required: false
+    description: Whether glycosylation is present in the structure/model annotation.
+
+  - name: post_translational_modifications
+    type: array[string]
+    required: false
+    description: Other PTMs or covalent processing events observed or annotated.
+
+  - name: space_group
+    type: string
+    required: false
+    description: Crystallographic space group, if applicable.
+    example: "P 21 21 21"
+
+  - name: crystallization_conditions
+    type: string
+    required: false
+    description: Free-text summary of crystallization conditions.
+
+  - name: temperature_k
+    type: number
+    required: false
+    units: kelvin
+    description: Data collection temperature in kelvin.
+
+  - name: r_work
+    type: number
+    required: false
+    description: Reported crystallographic R-work value.
+
+  - name: r_free
+    type: number
+    required: false
+    description: Reported crystallographic R-free value.
+
+  - name: missing_residues
+    type: boolean
+    required: false
+    description: Whether the deposited model has missing residue stretches.
+
+  - name: related_entities
+    type: array[object]
+    required: false
+    description: Links from this receptor structure to other entities in the ontology or data model.
+    item_schema:
+      entity_type: string
+      entity_id: string
+      relation_type: string
+      note: string
+    example:
+      - entity_type: "ligand_complex"
+        entity_id: "ligand_complex:4EY4_donepezil"
+        relation_type: "has_ligand_complex"
+        note: "Donepezil-bound complex derived from the same structure entry."
+
+  - name: usable_for_docking
+    type: boolean
+    required: false
+    description: Expert or stage-selection flag indicating whether the structure is suitable for docking after standard preparation.
+
+  - name: usable_for_md
+    type: boolean
+    required: false
+    description: Expert curation flag indicating whether the structure is suitable for molecular dynamics after preparation.
+
+  - name: primary_reference
+    type: string
+    required: false
+    description: DOI, PubMed ID, or short citation for the primary structure publication.
+
+  - name: source_url
+    type: string
+    required: false
+    description: Canonical URL for the source registry page of the structure/model.
+
+  - name: notes
+    type: string
+    required: false
+    description: Free-text curator note for important caveats or decisions.
+
+interpretation_rules:
+  - rule: registry_scope
+    text: >
+      Do not assume that structure identifiers are limited to PDB codes. The same receptor
+      may later be represented by trusted records from UniProt, AlphaFold, ModelArchive,
+      or other registries. Preserve the primary source in structure_registry and use
+      external_ids for cross-references.
+
+  - rule: apo_definition
+    text: >
+      Do not treat buffer components, crystallization additives, waters, or glycans as
+      holo-defining ligands unless they are functionally relevant to the receptor state.
+      Current apo/holo classification may still require curator review when multiple nonpolymer
+      components are present.
+
+  - rule: peptide_bound_context
+    text: >
+      Peptide- or protein-bound inhibitory contexts should not be collapsed into apo simply because
+      no primary small-molecule ligand can be selected. In such cases, prefer a conservative holo or
+      unknown interpretation, keep primary_ligand_code null, and document the special context in notes.
+
+  - rule: oligomeric_state_definition
+    text: >
+      Prefer the biologically relevant assembly over the asymmetric unit when explicitly
+      annotated. If unclear, set oligomeric_state to unknown and document uncertainty in notes.
+
+  - rule: construct_vs_native
+    text: >
+      If the structure contains a truncated or engineered protein, preserve the source
+      organism in organism and capture the engineered nature in construct_type and mutations.
+
+  - rule: ligand_priority
+    text: >
+      Functional ligands, inhibitors, covalent modifiers, and substrate analogs should be
+      included in bound_ligands. Ignore common salts, cryoprotectants, and non-functional solvents.
+      When several nonpolymer component codes are present, prefer the functionally central small-molecule
+      ligand over accompanying additives, but document uncertainty in notes if prioritization is unclear.
+
+  - rule: null_handling
+    text: >
+      If a field cannot be determined from trusted source data, set it to null rather than guessing.
+
+  - rule: structure_selection_usage
+    text: >
+      receptor_structure records are the input substrate for the separate structure_selection pipeline stage.
+      That stage may classify records as accepted, uncertain, or rejected for downstream docking-oriented workflows,
+      but this selection outcome should not silently invent new receptor_structure fields unless the schema is explicitly extended.
+
+output_template:
+  format: json
+  example:
+    structure_registry: "PDB"
+    structure_id: "1J06"
+    external_ids:
+      - registry: "PDB"
+        id: "1J06"
+        relation: "primary_entry"
+      - registry: "UniProt"
+        id: "P21836"
+        relation: "sequence_reference"
+    pdb_id: "1J06"
+    protein_name: "Acetylcholinesterase"
+    gene_name: "ACHE"
+    organism: "Mus musculus"
+    taxonomy_id: 10090
+    uniprot_id: "P21836"
+    structure_title: "Crystal structure of mouse acetylcholinesterase in the apo form"
+    experimental_method: "X-RAY DIFFRACTION"
+    resolution_angstrom: 2.35
+    ligand_state: "apo"
+    bound_ligands: []
+    primary_ligand_code: null
+    inhibitor_class: "none"
+    active_site_status: "free"
+    aged_state: false
+    oligomeric_state: "dimer"
+    assembly_type: "biological_assembly"
+    stoichiometry: "A2"
+    chains: ["A", "B"]
+    construct_type: "catalytic_domain"
+    sequence_range: "1-543"
+    mutations: []
+    glycosylation: true
+    post_translational_modifications: []
+    space_group: "P 21 21 21"
+    crystallization_conditions: "PEG 600, HEPES or sodium acetate, pH 6.5-8.0"
+    temperature_k: 100
+    r_work: 0.209
+    r_free: 0.232
+    missing_residues: true
+    related_entities:
+      - entity_type: "receptor_structure"
+        entity_id: "receptor_structure:1J06_apo_state"
+        relation_type: "has_state_record"
+        note: "Apo-state structural context for the receptor."
+    usable_for_docking: true
+    usable_for_md: true
+    primary_reference: "10.1093/emboj/cdg005"
+    source_url: "https://www.rcsb.org/structure/1J06"
+    notes: "Apo-form mouse ACHE structure."

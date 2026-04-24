@@ -1,0 +1,107 @@
+ontology_name: physical_world_modeling_entities
+ontology_version: 1.0
+language: en
+
+description: >
+  Master ontology index for strict human-agent shared descriptions of sensitive
+  entities used in physical-world molecular modeling. This file declares the main
+  entity types, their boundaries, and their relations.
+
+pipeline_stage_policy:
+  description: >
+    The executable pipeline may include stage artifacts such as structure_selection outputs,
+    but those operational artifacts are not ontology entities unless they are explicitly promoted
+    into the ontology later.
+
+stage_artifacts:
+  - name: structure_selection
+    input_entity: receptor_structure
+    output_kind: decision_artifact
+    status_values:
+      - accepted
+      - uncertain
+      - rejected
+    description: Conservative stage that classifies pre-fetched receptor_structure records for downstream docking-oriented workflows.
+
+principles:
+  - Preserve semantic strictness.
+  - Keep provenance explicit.
+  - Separate entities by modeling role.
+  - Use null instead of guessing.
+  - Allow future expansion across trusted registries.
+
+entities:
+  - name: receptor_structure
+    schema_file: schemas/receptor_structure.schema.en.yaml
+    description: One normalized receptor/protein structure record.
+
+  - name: binding_site
+    schema_file: schemas/binding_site.schema.en.yaml
+    description: One normalized receptor binding-site record anchored to a specific structure context.
+
+  - name: ligand_complex
+    schema_file: schemas/ligand_complex.schema.en.yaml
+    description: One normalized receptor-ligand complex record.
+
+  - name: ligand
+    schema_file: schemas/ligand.schema.en.yaml
+    description: One normalized chemical ligand record.
+
+relations:
+  - subject: receptor_structure
+    predicate: has_ligand_complex
+    object: ligand_complex
+    description: A receptor structure may support one or more ligand complex interpretations.
+
+  - subject: receptor_structure
+    predicate: has_binding_site
+    object: binding_site
+    description: A receptor structure may support one or more binding_site interpretations anchored to that structure context.
+
+  - subject: receptor_structure
+    predicate: has_state_record
+    object: receptor_structure
+    description: A receptor structure may link to another receptor_structure record that captures a distinct curated state interpretation, such as an apo-state context derived from the same source entry.
+
+  - subject: binding_site
+    predicate: derived_from_structure
+    object: receptor_structure
+    description: A binding site is interpreted from and anchored to one receptor structure/model context.
+
+  - subject: ligand_complex
+    predicate: maps_to_binding_site
+    object: binding_site
+    description: A ligand complex may map to one binding_site interpretation representing the relevant residue-level site context.
+
+  - subject: ligand_complex
+    predicate: derived_from_structure
+    object: receptor_structure
+    description: A ligand complex is derived from or anchored to a receptor structure/model.
+
+  - subject: ligand_complex
+    predicate: has_ligand
+    object: ligand
+    description: A ligand complex includes one normalized ligand entity.
+
+  - subject: ligand
+    predicate: participates_in
+    object: ligand_complex
+    description: A ligand may participate in one or more ligand complexes.
+
+registry_expansion_policy:
+  description: >
+    Entity identifiers are not restricted to a single registry. Structural and chemical
+    records may be cross-linked across PDB, UniProt, AlphaFold, ModelArchive, PubChem,
+    ChEBI, DrugBank, PDB CCD, and other trusted registries.
+
+curation_policy:
+  description: >
+    Ambiguity must be made explicit in notes or left as null. Curated relations should be
+    preferred over guessed relations.
+
+future_entities:
+  - assay
+  - mutation
+  - protein_family
+  - simulation_system
+  - publication

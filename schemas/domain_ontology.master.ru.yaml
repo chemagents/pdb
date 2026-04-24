@@ -1,0 +1,106 @@
+ontology_name: physical_world_modeling_entities
+ontology_version: 1.0
+language: ru
+
+description: >
+  Главный индекс онтологии для строгих разделяемых человеком и агентом описаний чувствительных
+  сущностей, используемых в молекулярном моделировании физического мира. Этот файл задает основные
+  типы сущностей, их границы и связи между ними.
+
+pipeline_stage_policy:
+  description: >
+    Исполняемый pipeline может включать stage artifacts, например outputs стадии structure_selection,
+    но такие operational artifacts не считаются ontology entities, пока они явно не подняты в онтологию.
+
+stage_artifacts:
+  - name: structure_selection
+    input_entity: receptor_structure
+    output_kind: decision_artifact
+    status_values:
+      - accepted
+      - uncertain
+      - rejected
+    description: Консервативная стадия, которая классифицирует уже собранные receptor_structure records для downstream docking-oriented workflow.
+
+principles:
+  - Сохранять семантическую строгость.
+  - Явно фиксировать происхождение данных.
+  - Разделять сущности по роли в моделировании.
+  - Использовать null вместо догадок.
+  - Допускать будущее расширение через доверенные реестры.
+
+entities:
+  - name: receptor_structure
+    schema_file: schemas/receptor_structure.schema.ru.yaml
+    description: Одна нормализованная запись о структуре рецептора/белка.
+
+  - name: binding_site
+    schema_file: schemas/binding_site.schema.ru.yaml
+    description: Одна нормализованная запись о сайте связывания рецептора, привязанная к конкретному структурному контексту.
+
+  - name: ligand_complex
+    schema_file: schemas/ligand_complex.schema.ru.yaml
+    description: Одна нормализованная запись о комплексе рецептора с лигандом.
+
+  - name: ligand
+    schema_file: schemas/ligand.schema.ru.yaml
+    description: Одна нормализованная запись о химической сущности лиганда.
+
+relations:
+  - subject: receptor_structure
+    predicate: has_ligand_complex
+    object: ligand_complex
+    description: Одна структура рецептора может поддерживать одну или несколько интерпретаций комплекса с лигандом.
+
+  - subject: receptor_structure
+    predicate: has_binding_site
+    object: binding_site
+    description: Одна структура рецептора может поддерживать одну или несколько интерпретаций сайта связывания, привязанных к этому структурному контексту.
+
+  - subject: receptor_structure
+    predicate: has_state_record
+    object: receptor_structure
+    description: Одна структура рецептора может ссылаться на другую запись receptor_structure, которая фиксирует отдельную курируемую интерпретацию состояния, например контекст apo-состояния, выведенный из той же исходной записи.
+
+  - subject: binding_site
+    predicate: derived_from_structure
+    object: receptor_structure
+    description: Один сайт связывания интерпретируется из одной структуры/модели рецептора и привязан к ее контексту.
+
+  - subject: ligand_complex
+    predicate: maps_to_binding_site
+    object: binding_site
+    description: Один комплекс с лигандом может быть сопоставлен с одной интерпретацией сайта связывания, представляющей релевантный residue-level контекст.
+
+  - subject: ligand_complex
+    predicate: derived_from_structure
+    object: receptor_structure
+    description: Комплекс с лигандом выводится из структуры/модели рецептора или привязан к ней.
+
+  - subject: ligand_complex
+    predicate: has_ligand
+    object: ligand
+    description: Один комплекс с лигандом включает одну нормализованную сущность лиганда.
+
+  - subject: ligand
+    predicate: participates_in
+    object: ligand_complex
+    description: Один лиганд может участвовать в одном или нескольких комплексах.
+
+registry_expansion_policy:
+  description: >
+    Идентификаторы сущностей не ограничиваются одним реестром. Структурные и химические записи
+    могут связываться между PDB, UniProt, AlphaFold, ModelArchive, PubChem, ChEBI, DrugBank,
+    PDB CCD и другими доверенными реестрами.
+
+curation_policy:
+  description: >
+    Неоднозначность должна явно фиксироваться в notes или оставляться как null. Курированные связи
+    предпочтительнее предполагаемых.
+
+future_entities:
+  - assay
+  - mutation
+  - protein_family
+  - simulation_system
+  - publication

@@ -1,0 +1,231 @@
+schema_name: ligand
+schema_version: 1.0
+language: en
+
+description: >
+  These entity descriptions are created so that agent systems ("AI") and humans
+  share the same understanding of the most sensitive objects in modeling the
+  physical world and preserve strictness in how those objects are described.
+  Such files are also useful when building a domain ontology. This schema defines
+  a ligand as a normalized chemical entity that can be linked to receptor structures,
+  ligand complexes, assays, and simulation workflows.
+
+entity_definition:
+  name: ligand
+  description: >
+    A structured representation of one chemically meaningful ligand entity, including
+    small molecules, inhibitors, substrate analogs, reactivators, cofactors, or probes.
+    A ligand may be linked to multiple receptor structures and multiple ligand_complex
+    records. Identifier sets may be extended over time with entries from PubChem, ChEBI,
+    DrugBank, PDB CCD, UniProt-linked chemistry references, and other trusted registries.
+
+record_granularity:
+  unit: one_chemical_entity_record
+  description: >
+    One record corresponds to one normalized chemical entity. Salt forms, protonation
+    variants, stereoisomers, and covalent adduct forms should be represented distinctly
+    when they are chemically or mechanistically important.
+
+naming_conventions:
+  missing_value: null
+  boolean_values: [true, false]
+  list_format: array
+  primary_id_example: "ligand:donepezil"
+
+field_groups:
+  - identity
+  - chemistry
+  - pharmacology
+  - registry_links
+  - relations
+  - curation
+
+fields:
+  - name: ligand_entity_id
+    type: string
+    required: true
+    description: Internal stable identifier for the ligand entity.
+    example: "ligand:donepezil"
+
+  - name: preferred_name
+    type: string
+    required: true
+    description: Preferred human-readable ligand name.
+    example: "Donepezil"
+
+  - name: synonyms
+    type: array[string]
+    required: false
+    description: Alternative names, aliases, or registry-preferred labels.
+
+  - name: chemical_type
+    type: string
+    required: true
+    description: Broad chemical or functional type of the ligand.
+    allowed_values:
+      - small_molecule
+      - organophosphate
+      - carbamate
+      - oxime
+      - peptide
+      - cofactor
+      - metabolite
+      - fragment
+      - unknown
+
+  - name: ligand_role
+    type: string
+    required: false
+    description: Common biological or pharmacological role.
+    allowed_values:
+      - inhibitor
+      - substrate
+      - substrate_analog
+      - product
+      - reactivator
+      - cofactor
+      - probe
+      - unknown
+
+  - name: smiles
+    type: string
+    required: false
+    description: Canonical or curated SMILES string.
+
+  - name: inchi
+    type: string
+    required: false
+    description: InChI string.
+
+  - name: inchikey
+    type: string
+    required: false
+    description: InChIKey string.
+
+  - name: formula
+    type: string
+    required: false
+    description: Molecular formula.
+    example: "C24H29NO3"
+
+  - name: molecular_weight
+    type: number
+    required: false
+    description: Molecular weight in daltons.
+
+  - name: formal_charge
+    type: integer
+    required: false
+    description: Formal net charge for the represented chemical form.
+
+  - name: stereochemistry_defined
+    type: boolean
+    required: false
+    description: Whether stereochemistry is explicitly defined in the normalized representation.
+
+  - name: protonation_state
+    type: string
+    required: false
+    description: Named protonation state if curated explicitly.
+
+  - name: registry_ids
+    type: array[object]
+    required: false
+    description: External registry identifiers for the ligand.
+    item_schema:
+      registry: string
+      id: string
+      relation: string
+    example:
+      - registry: "PubChem"
+        id: "3152"
+        relation: "primary_reference"
+      - registry: "ChEBI"
+        id: "53289"
+        relation: "cross_reference"
+      - registry: "PDB CCD"
+        id: "E20"
+        relation: "bound_component_code"
+
+  - name: mechanism_class
+    type: string
+    required: false
+    description: Mechanistic class relevant to receptor interaction.
+    allowed_values:
+      - reversible_inhibitor
+      - irreversible_inhibitor
+      - covalent_modifier
+      - reactivator
+      - substrate_like
+      - allosteric_modulator
+      - unknown
+
+  - name: related_entities
+    type: array[object]
+    required: false
+    description: Links from this ligand to other entities in the ontology or data model.
+    item_schema:
+      entity_type: string
+      entity_id: string
+      relation_type: string
+      note: string
+    example:
+      - entity_type: "ligand_complex"
+        entity_id: "ligand_complex:4EY4_donepezil"
+        relation_type: "participates_in"
+        note: "Observed in a human ACHE complex."
+
+  - name: source_url
+    type: string
+    required: false
+    description: Canonical URL for a preferred source registry page.
+
+  - name: notes
+    type: string
+    required: false
+    description: Free-text curator note for important caveats or normalization decisions.
+
+interpretation_rules:
+  - rule: normalization_scope
+    text: >
+      Normalize the ligand as one chemically meaningful entity, but preserve separate records
+      for stereoisomers, protonation variants, salt forms, or adduct states when they matter
+      for binding, mechanism, simulation, or ontology integrity.
+
+  - rule: registry_scope
+    text: >
+      Do not assume one registry is sufficient. A ligand may carry parallel identifiers from
+      PubChem, ChEBI, DrugBank, PDB CCD, and other trusted chemical registries.
+
+  - rule: null_handling
+    text: >
+      If a field cannot be determined from trusted source data, set it to null rather than guessing.
+
+output_template:
+  format: json
+  example:
+    ligand_entity_id: "ligand:donepezil"
+    preferred_name: "Donepezil"
+    synonyms: ["E2020"]
+    chemical_type: "small_molecule"
+    ligand_role: "inhibitor"
+    smiles: null
+    inchi: null
+    inchikey: null
+    formula: "C24H29NO3"
+    molecular_weight: 379.49
+    formal_charge: 0
+    stereochemistry_defined: true
+    protonation_state: null
+    registry_ids:
+      - registry: "PubChem"
+        id: "3152"
+        relation: "primary_reference"
+    mechanism_class: "reversible_inhibitor"
+    related_entities:
+      - entity_type: "ligand_complex"
+        entity_id: "ligand_complex:4EY4_donepezil"
+        relation_type: "participates_in"
+        note: "Observed as a bound inhibitor."
+    source_url: null
+    notes: "Reference small-molecule inhibitor of ACHE."

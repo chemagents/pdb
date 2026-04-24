@@ -1,0 +1,232 @@
+schema_name: ligand
+schema_version: 1.0
+language: ru
+
+description: >
+  Эти описания сущностей создаются для того, чтобы агентные системы ("ИИ") и человек
+  имели общее понимание наиболее чувствительных объектов при моделировании физического мира
+  и сохраняли строгость в их описании. Такие файлы также полезны при построении онтологии
+  предметной области. Эта схема определяет лиганд как нормализованную химическую сущность,
+  которую можно связывать со структурами рецепторов, комплексами с лигандами, экспериментами
+  и симуляционными процессами.
+
+entity_definition:
+  name: ligand
+  description: >
+    Структурированное представление одной химически осмысленной сущности лиганда, включая
+    малые молекулы, ингибиторы, аналоги субстрата, реактиваторы, кофакторы и зонды.
+    Один лиганд может быть связан с несколькими структурами рецепторов и несколькими
+    записями ligand_complex. Набор идентификаторов может со временем расширяться данными
+    из PubChem, ChEBI, DrugBank, PDB CCD, UniProt-связанных химических референсов и других
+    доверенных реестров.
+
+record_granularity:
+  unit: one_chemical_entity_record
+  description: >
+    Одна запись соответствует одной нормализованной химической сущности. Солевые формы,
+    варианты протонирования, стереоизомеры и ковалентные аддуктные формы нужно представлять
+    отдельно, если это важно химически или механистически.
+
+naming_conventions:
+  missing_value: null
+  boolean_values: [true, false]
+  list_format: array
+  primary_id_example: "ligand:donepezil"
+
+field_groups:
+  - identity
+  - chemistry
+  - pharmacology
+  - registry_links
+  - relations
+  - curation
+
+fields:
+  - name: ligand_entity_id
+    type: string
+    required: true
+    description: Внутренний стабильный идентификатор сущности лиганда.
+    example: "ligand:donepezil"
+
+  - name: preferred_name
+    type: string
+    required: true
+    description: Предпочтительное читаемое название лиганда.
+    example: "Donepezil"
+
+  - name: synonyms
+    type: array[string]
+    required: false
+    description: Альтернативные названия, синонимы или метки из реестров.
+
+  - name: chemical_type
+    type: string
+    required: true
+    description: Широкий химический или функциональный тип лиганда.
+    allowed_values:
+      - small_molecule
+      - organophosphate
+      - carbamate
+      - oxime
+      - peptide
+      - cofactor
+      - metabolite
+      - fragment
+      - unknown
+
+  - name: ligand_role
+    type: string
+    required: false
+    description: Типичная биологическая или фармакологическая роль.
+    allowed_values:
+      - inhibitor
+      - substrate
+      - substrate_analog
+      - product
+      - reactivator
+      - cofactor
+      - probe
+      - unknown
+
+  - name: smiles
+    type: string
+    required: false
+    description: Каноническая или вручную нормализованная строка SMILES.
+
+  - name: inchi
+    type: string
+    required: false
+    description: Строка InChI.
+
+  - name: inchikey
+    type: string
+    required: false
+    description: Строка InChIKey.
+
+  - name: formula
+    type: string
+    required: false
+    description: Молекулярная формула.
+    example: "C24H29NO3"
+
+  - name: molecular_weight
+    type: number
+    required: false
+    description: Молекулярная масса в дальтонах.
+
+  - name: formal_charge
+    type: integer
+    required: false
+    description: Формальный суммарный заряд представленной химической формы.
+
+  - name: stereochemistry_defined
+    type: boolean
+    required: false
+    description: Явно ли задана стереохимия в нормализованном представлении.
+
+  - name: protonation_state
+    type: string
+    required: false
+    description: Названное состояние протонирования, если вручную курируется.
+
+  - name: registry_ids
+    type: array[object]
+    required: false
+    description: Внешние идентификаторы лиганда в химических реестрах.
+    item_schema:
+      registry: string
+      id: string
+      relation: string
+    example:
+      - registry: "PubChem"
+        id: "3152"
+        relation: "primary_reference"
+      - registry: "ChEBI"
+        id: "53289"
+        relation: "cross_reference"
+      - registry: "PDB CCD"
+        id: "E20"
+        relation: "bound_component_code"
+
+  - name: mechanism_class
+    type: string
+    required: false
+    description: Механистический класс, релевантный для взаимодействия с рецептором.
+    allowed_values:
+      - reversible_inhibitor
+      - irreversible_inhibitor
+      - covalent_modifier
+      - reactivator
+      - substrate_like
+      - allosteric_modulator
+      - unknown
+
+  - name: related_entities
+    type: array[object]
+    required: false
+    description: Связи данного лиганда с другими сущностями онтологии или модели данных.
+    item_schema:
+      entity_type: string
+      entity_id: string
+      relation_type: string
+      note: string
+    example:
+      - entity_type: "ligand_complex"
+        entity_id: "ligand_complex:4EY4_donepezil"
+        relation_type: "participates_in"
+        note: "Наблюдается в комплексе с человеческой ACHE."
+
+  - name: source_url
+    type: string
+    required: false
+    description: Канонический URL страницы в предпочтительном реестре-источнике.
+
+  - name: notes
+    type: string
+    required: false
+    description: Свободная заметка куратора о важных оговорках или решениях по нормализации.
+
+interpretation_rules:
+  - rule: normalization_scope
+    text: >
+      Лиганд нужно нормализовать как одну химически осмысленную сущность, но сохранять отдельные записи
+      для стереоизомеров, вариантов протонирования, солевых форм и аддуктных состояний, если это важно
+      для связывания, механизма, симуляции или целостности онтологии.
+
+  - rule: registry_scope
+    text: >
+      Нельзя опираться только на один реестр. У лиганда могут параллельно существовать идентификаторы
+      из PubChem, ChEBI, DrugBank, PDB CCD и других доверенных химических источников.
+
+  - rule: null_handling
+    text: >
+      Если поле нельзя надежно определить из доверенных источников, нужно ставить null, а не угадывать.
+
+output_template:
+  format: json
+  example:
+    ligand_entity_id: "ligand:donepezil"
+    preferred_name: "Donepezil"
+    synonyms: ["E2020"]
+    chemical_type: "small_molecule"
+    ligand_role: "inhibitor"
+    smiles: null
+    inchi: null
+    inchikey: null
+    formula: "C24H29NO3"
+    molecular_weight: 379.49
+    formal_charge: 0
+    stereochemistry_defined: true
+    protonation_state: null
+    registry_ids:
+      - registry: "PubChem"
+        id: "3152"
+        relation: "primary_reference"
+    mechanism_class: "reversible_inhibitor"
+    related_entities:
+      - entity_type: "ligand_complex"
+        entity_id: "ligand_complex:4EY4_donepezil"
+        relation_type: "participates_in"
+        note: "Наблюдается как связанный ингибитор."
+    source_url: null
+    notes: "Референсный низкомолекулярный ингибитор ACHE."

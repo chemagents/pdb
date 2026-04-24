@@ -1,0 +1,456 @@
+schema_name: receptor_structure
+schema_version: 1.0
+language: ru
+
+description: >
+  Эти описания сущностей создаются для того, чтобы агентные системы ("ИИ") и человек
+  имели общее понимание наиболее чувствительных объектов при моделировании физического мира
+  и сохраняли строгость в их описании. Такие файлы также полезны при построении онтологии
+  предметной области. Эта схема определяет одну запись о структуре рецептора/белка как
+  нормализованную сущность, пригодную для курирования, моделирования, докинга, симуляций
+  и интеграции знаний.
+
+entity_definition:
+  name: receptor_structure
+  description: >
+    Структурированное представление одной экспериментально полученной или связанной с реестром
+    записи о структуре рецептора/белка. В текущем процессе одна запись обычно соответствует
+    одной структуре, например одной записи PDB, но в будущем набор идентификаторов для того же
+    рецептора может дополняться вариантами из UniProt, AlphaFold и других доверенных реестров
+    или репозиториев моделей.
+
+record_granularity:
+  unit: one_structure_record
+  description: >
+    Одна запись соответствует одной депонированной или связанной с реестром структуре/модели
+    рецептора или белка. Разные комплексы с лигандами, мутантные формы, предсказанные модели
+    или структуры из разных реестров считаются отдельными записями, даже если относятся к одной
+    и той же биологической мишени.
+
+naming_conventions:
+  missing_value: null
+  boolean_values: [true, false]
+  list_format: array
+  primary_id_example: "4EY4"
+
+field_groups:
+  - identity
+  - biology
+  - experiment
+  - state
+  - assembly
+  - construct
+  - quality
+  - relations
+  - references
+  - curation
+
+fields:
+  - name: structure_registry
+    type: string
+    required: true
+    description: Основной реестр или система-источник, из которой получена запись о структуре.
+    allowed_values:
+      - PDB
+      - UniProt
+      - AlphaFold
+      - ModelArchive
+      - EMDB
+      - Other
+    example: "PDB"
+
+  - name: structure_id
+    type: string
+    required: true
+    description: Основной идентификатор структуры/модели в реестре-источнике.
+    example: "4EY4"
+
+  - name: external_ids
+    type: array[object]
+    required: false
+    description: >
+      Кросс-реестровые идентификаторы для той же структуры рецептора или связанных с ней
+      представлений структуры/модели.
+    item_schema:
+      registry: string
+      id: string
+      relation: string
+    example:
+      - registry: "PDB"
+        id: "4EY4"
+        relation: "primary_entry"
+      - registry: "UniProt"
+        id: "P22303"
+        relation: "sequence_reference"
+      - registry: "AlphaFold"
+        id: "AF-P22303-F1"
+        relation: "predicted_model_reference"
+
+  - name: pdb_id
+    type: string
+    required: false
+    description: Код PDB, если структура представлена в Protein Data Bank.
+    constraints:
+      regex: "^[0-9A-Z]{4}$"
+    example: "4EY4"
+
+  - name: protein_name
+    type: string
+    required: true
+    description: Каноническое название белка для структурированной макромолекулы.
+    example: "Acetylcholinesterase"
+
+  - name: gene_name
+    type: string
+    required: false
+    description: Стандартный символ гена, если доступен.
+    example: "ACHE"
+
+  - name: organism
+    type: string
+    required: true
+    description: Вид-источник, от которого происходит последовательность белка.
+    example: "Homo sapiens"
+
+  - name: taxonomy_id
+    type: integer
+    required: false
+    description: Идентификатор вида в NCBI taxonomy.
+    example: 9606
+
+  - name: uniprot_id
+    type: string
+    required: false
+    description: UniProt accession, соответствующий белковой конструкции, если доступен.
+    example: "P22303"
+
+  - name: structure_title
+    type: string
+    required: false
+    description: Официальное название депонированной структуры или модели.
+
+  - name: experimental_method
+    type: string
+    required: false
+    description: Экспериментальный метод определения структуры, если применимо.
+    allowed_values:
+      - X-RAY DIFFRACTION
+      - CRYO-EM
+      - SOLUTION NMR
+      - SOLID-STATE NMR
+      - ELECTRON CRYSTALLOGRAPHY
+      - NEUTRON DIFFRACTION
+      - FIBER DIFFRACTION
+      - COMPUTATIONAL MODEL
+      - OTHER
+
+  - name: resolution_angstrom
+    type: number
+    required: false
+    units: angstrom
+    description: Лучшее заявленное разрешение эксперимента в ангстремах.
+    example: 2.35
+
+  - name: ligand_state
+    type: string
+    required: true
+    description: >
+      Описывает, свободна ли структура рецептора/белка от функционально значимых лигандов
+      или содержит связанные релевантные лиганды.
+    allowed_values:
+      - apo
+      - holo
+      - covalent_inhibitor_complex
+      - noncovalent_complex
+      - substrate_analog_complex
+      - reactivator_complex
+      - mixed_complex
+      - unknown
+
+  - name: bound_ligands
+    type: array[string]
+    required: false
+    description: Список кодов биологически или экспериментально значимых связанных лигандов, оставшихся после консервативной фильтрации нефункциональных additives. Этот список должен оставаться консервативным candidate set для downstream восстановления координат binding-site по положениям co-crystallized ligands.
+
+  - name: primary_ligand_code
+    type: string
+    required: false
+    description: >
+      Код первичного функционально центрального лиганда для данной интерпретации receptor_structure,
+      если его можно консервативно определить. Используй null, если meaningful ligands несколько
+      или если приоритизация неясна.
+
+  - name: inhibitor_class
+    type: string
+    required: false
+    description: Функциональный класс ингибитора, если применимо.
+    allowed_values:
+      - organophosphate
+      - carbamate
+      - reversible_inhibitor
+      - substrate_analog
+      - reactivator
+      - allosteric_ligand
+      - none
+      - unknown
+
+  - name: active_site_status
+    type: string
+    required: false
+    description: Функциональное состояние активного центра.
+    allowed_values:
+      - free
+      - occupied
+      - covalently_modified
+      - blocked
+      - unknown
+
+  - name: aged_state
+    type: boolean
+    required: false
+    description: >
+      Признак того, что структура ингибированной органофосфатом холинэстеразы находится в aged-состоянии.
+
+  - name: oligomeric_state
+    type: string
+    required: true
+    description: Четвертичная организация, приписанная биологически релевантной сборке.
+    allowed_values:
+      - monomer
+      - dimer
+      - trimer
+      - tetramer
+      - oligomer
+      - unknown
+
+  - name: assembly_type
+    type: string
+    required: false
+    description: Указывает, относится ли аннотация к асимметричной единице или биологической сборке.
+    allowed_values:
+      - asymmetric_unit
+      - biological_assembly
+      - deposited_assembly
+      - predicted_monomer
+      - predicted_multimer
+      - unknown
+
+  - name: stoichiometry
+    type: string
+    required: false
+    description: Стехиометрическая метка для релевантной сборки.
+    example: "A2"
+
+  - name: chains
+    type: array[string]
+    required: false
+    description: Идентификаторы цепей, входящих в релевантную сборку рецептора/белка.
+
+  - name: construct_type
+    type: string
+    required: false
+    description: Тип белковой конструкции, использованной для определения структуры или моделирования.
+    allowed_values:
+      - full_length
+      - catalytic_domain
+      - extracellular_domain
+      - engineered_construct
+      - truncated_construct
+      - fusion_construct
+      - predicted_model
+      - unknown
+
+  - name: sequence_range
+    type: string
+    required: false
+    description: Интервал остатков, присутствующий в конструкции или смоделированной области.
+    example: "32-550"
+
+  - name: mutations
+    type: array[string]
+    required: false
+    description: Список инженерных или биологически значимых мутаций.
+    example: ["S203A"]
+
+  - name: glycosylation
+    type: boolean
+    required: false
+    description: Признак наличия гликозилирования в структуре или аннотации модели.
+
+  - name: post_translational_modifications
+    type: array[string]
+    required: false
+    description: Другие посттрансляционные модификации или ковалентные события процессинга.
+
+  - name: space_group
+    type: string
+    required: false
+    description: Пространственная группа кристалла, если применимо.
+    example: "P 21 21 21"
+
+  - name: crystallization_conditions
+    type: string
+    required: false
+    description: Краткое текстовое описание условий кристаллизации.
+
+  - name: temperature_k
+    type: number
+    required: false
+    units: kelvin
+    description: Температура сбора данных в кельвинах.
+
+  - name: r_work
+    type: number
+    required: false
+    description: Заявленное значение кристаллографического R-work.
+
+  - name: r_free
+    type: number
+    required: false
+    description: Заявленное значение кристаллографического R-free.
+
+  - name: missing_residues
+    type: boolean
+    required: false
+    description: Есть ли в депонированной модели пропущенные участки по остаткам.
+
+  - name: related_entities
+    type: array[object]
+    required: false
+    description: Связи данной структуры рецептора с другими сущностями онтологии или модели данных.
+    item_schema:
+      entity_type: string
+      entity_id: string
+      relation_type: string
+      note: string
+    example:
+      - entity_type: "ligand_complex"
+        entity_id: "ligand_complex:4EY4_donepezil"
+        relation_type: "has_ligand_complex"
+        note: "Комплекс с донепезилом, выделенный из той же структурной записи."
+
+  - name: usable_for_docking
+    type: boolean
+    required: false
+    description: Экспертный флаг или результат стадии structure_selection, показывающий пригодность структуры для докинга после стандартной подготовки.
+
+  - name: usable_for_md
+    type: boolean
+    required: false
+    description: Экспертный флаг пригодности структуры для молекулярной динамики после подготовки.
+
+  - name: primary_reference
+    type: string
+    required: false
+    description: DOI, PubMed ID или краткая ссылка на основную публикацию по структуре.
+
+  - name: source_url
+    type: string
+    required: false
+    description: Канонический URL страницы структуры/модели в реестре-источнике.
+
+  - name: notes
+    type: string
+    required: false
+    description: Свободная заметка куратора о важных оговорках или решениях.
+
+interpretation_rules:
+  - rule: registry_scope
+    text: >
+      Нельзя считать, что идентификаторы структур ограничиваются только кодами PDB. Тот же рецептор
+      может быть позже представлен доверенными записями из UniProt, AlphaFold, ModelArchive или других
+      реестров. Основной источник фиксируется в structure_registry, а перекрестные ссылки хранятся в external_ids.
+
+  - rule: apo_definition
+    text: >
+      Не считать буферные компоненты, добавки для кристаллизации, воду или гликаны признаками holo-состояния,
+      если они не являются функционально значимыми для состояния рецептора.
+      Текущая классификация apo/holo все еще может требовать curator review, если в записи присутствует
+      несколько nonpolymer components.
+
+  - rule: peptide_bound_context
+    text: >
+      Ингибирующие peptide- или protein-bound contexts нельзя автоматически сводить к apo только потому,
+      что не удалось выбрать primary small-molecule ligand. В таких случаях предпочтительна консервативная
+      интерпретация holo или unknown, primary_ligand_code должен оставаться null, а special context нужно
+      явно описывать в notes.
+
+  - rule: oligomeric_state_definition
+    text: >
+      Предпочитать биологически релевантную сборку, а не асимметричную единицу, если это явно указано.
+      Если однозначно определить нельзя, ставить unknown и фиксировать неопределенность в notes.
+
+  - rule: construct_vs_native
+    text: >
+      Если структура содержит укороченный или инженерно модифицированный белок, нужно сохранять исходный вид
+      в organism, а модифицированность отражать в construct_type и mutations.
+
+  - rule: ligand_priority
+    text: >
+      Функциональные лиганды, ингибиторы, ковалентные модификаторы и аналоги субстрата должны включаться
+      в bound_ligands. Обычные соли, криопротекторы и нефункциональные растворители нужно игнорировать.
+      Если в записи присутствует несколько nonpolymer component codes, нужно предпочитать функционально
+      центральный low-molecular ligand, а при неясности явно фиксировать uncertainty в notes.
+
+  - rule: null_handling
+    text: >
+      Если поле нельзя надежно определить из доверенных источников, нужно ставить null, а не угадывать.
+
+  - rule: structure_selection_usage
+    text: >
+      Записи receptor_structure служат входным substrate для отдельной pipeline stage structure_selection.
+      Эта стадия может классифицировать записи как accepted, uncertain или rejected для downstream docking-oriented workflow,
+      но не должна молча вводить новые поля receptor_structure, если schema не была явно расширена.
+
+output_template:
+  format: json
+  example:
+    structure_registry: "PDB"
+    structure_id: "1J06"
+    external_ids:
+      - registry: "PDB"
+        id: "1J06"
+        relation: "primary_entry"
+      - registry: "UniProt"
+        id: "P21836"
+        relation: "sequence_reference"
+    pdb_id: "1J06"
+    protein_name: "Acetylcholinesterase"
+    gene_name: "ACHE"
+    organism: "Mus musculus"
+    taxonomy_id: 10090
+    uniprot_id: "P21836"
+    structure_title: "Crystal structure of mouse acetylcholinesterase in the apo form"
+    experimental_method: "X-RAY DIFFRACTION"
+    resolution_angstrom: 2.35
+    ligand_state: "apo"
+    bound_ligands: []
+    primary_ligand_code: null
+    inhibitor_class: "none"
+    active_site_status: "free"
+    aged_state: false
+    oligomeric_state: "dimer"
+    assembly_type: "biological_assembly"
+    stoichiometry: "A2"
+    chains: ["A", "B"]
+    construct_type: "catalytic_domain"
+    sequence_range: "1-543"
+    mutations: []
+    glycosylation: true
+    post_translational_modifications: []
+    space_group: "P 21 21 21"
+    crystallization_conditions: "PEG 600, HEPES or sodium acetate, pH 6.5-8.0"
+    temperature_k: 100
+    r_work: 0.209
+    r_free: 0.232
+    missing_residues: true
+    related_entities:
+      - entity_type: "receptor_structure"
+        entity_id: "receptor_structure:1J06_apo_state"
+        relation_type: "has_state_record"
+        note: "Контекст apo-состояния для рецептора."
+    usable_for_docking: true
+    usable_for_md: true
+    primary_reference: "10.1093/emboj/cdg005"
+    source_url: "https://www.rcsb.org/structure/1J06"
+    notes: "Apo-форма мышиной ACHE."
