@@ -1,0 +1,18 @@
+receptor = ./data_and_config/receptors/6cm4_clean.pdbqt
+
+# Использовать ЛИБО папку с лигандами:
+ligand_directory = ./data_and_config/ligands
+
+# ЛИБО объединенный файл лигандов (раскомментировать нужное):
+#ligand = ./data_and_config/test_part/combined_ligands/combined_ligands.pdbqt
+
+output_directory = ./results/6cm4
+opencl_binary_path = /home/safronov/code/chemspace/docking/Vina-GPU-2.1/QuickVina2-GPU-2.1
+log = ./results/6cm4/log.txt
+center_x = 11.34
+center_y = 5.41
+center_z = -8.67
+size_x = 20.9
+size_y = 18.74
+size_z = 27.13
+thread = 8000

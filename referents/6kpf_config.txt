@@ -1,0 +1,18 @@
+receptor = ./data_and_config/receptors/6kpf_clean.pdbqt
+
+# Использовать ЛИБО папку с лигандами:
+ligand_directory = ./data_and_config/ligands
+
+# ЛИБО объединенный файл лигандов (раскомментировать нужное):
+#ligand = ./data_and_config/test_part/combined_ligands/combined_ligands.pdbqt
+
+output_directory = ./results/6kpf
+opencl_binary_path = /home/safronov/code/chemspace/docking/Vina-GPU-2.1/QuickVina2-GPU-2.1
+log = ./results/6kpf/log.txt
+center_x = 109.34
+center_y = 106.59
+center_z = 125.78
+size_x = 25.00
+size_y = 21.21
+size_z = 21.74
+thread = 8000

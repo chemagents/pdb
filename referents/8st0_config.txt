@@ -1,0 +1,18 @@
+receptor = ./data_and_config/receptors/8st0_clean.pdbqt
+
+# Использовать ЛИБО папку с лигандами:
+ligand_directory = ./data_and_config/ligands
+
+# ЛИБО объединенный файл лигандов (раскомментировать нужное):
+#ligand = ./data_and_config/test_part/combined_ligands/combined_ligands.pdbqt
+
+output_directory = ./results/8st0
+opencl_binary_path = /home/safronov/code/chemspace/docking/Vina-GPU-2.1/QuickVina2-GPU-2.1
+log = ./results/8st0/log.txt
+center_x = 219.45
+center_y = 153.57
+center_z = 175.51
+size_x = 18.01
+size_y = 14.34
+size_z = 16.09
+thread = 8000

@@ -1,0 +1,18 @@
+receptor = ./data_and_config/receptors/5u09_clean.pdbqt
+
+# Использовать ЛИБО папку с лигандами:
+ligand_directory = ./data_and_config
+
+# ЛИБО объединенный файл лигандов (раскомментировать нужное):
+#ligand = ./data_and_config/test_part/combined_ligands/combined_ligands.pdbqt
+
+output_directory = ./results/results_5u09
+opencl_binary_path = /home/safronov/code/chemspace/docking/Vina-GPU-2.1/QuickVina2-GPU-2.1
+log = ./results/5u09/log.txt
+center_x = 22.56
+center_y = 1.63
+center_z = -8.4
+size_x = 16.87
+size_y = 30.66
+size_z = 25.08
+thread = 8000

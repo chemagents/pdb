@@ -1,0 +1,18 @@
+receptor = ./data_and_config/receptors/4ey7_clean.pdbqt
+
+# Использовать ЛИБО папку с лигандами:
+ligand_directory = ./data_and_config
+
+# ЛИБО объединенный файл лигандов (раскомментировать нужное):
+#ligand = ./data_and_config/test_part/combined_ligands/combined_ligands.pdbqt
+
+output_directory = ./results/4ey7
+opencl_binary_path = /home/safronov/code/chemspace/docking/Vina-GPU-2.1/QuickVina2-GPU-2.1
+log = ./results/4ey7/log.txt
+center_x = -12.33
+center_y = -46.48
+center_z = 31.16
+size_x = 24.74
+size_y = 25.8
+size_z = 24.22
+thread = 8000
